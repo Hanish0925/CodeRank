@@ -37,6 +37,7 @@ CodeRank is a scalable, containerized code execution backend supporting multiple
 git clone https://github.com/your-username/coderank.git
 cd CodeRank
 npm install
+```
 
 ### 2. 📄 Environment Variables
 
@@ -47,12 +48,14 @@ PORT=3000
 MONGO_URI=mongodb://localhost:27017/coderank
 REDIS_URL=redis://localhost:6379
 KAFKA_BROKER=localhost:9092
+```
 
 ### 3. 🐳 Docker Setup
 
 ```bash
 docker compose -f docker-compose.kafka.yml up -d
 docker compose -f docker-compose.redis.yml up -d
+```
 
 ### 4. 🛠 Build Docker containers per language
 
@@ -61,6 +64,7 @@ docker buildx build -t coderank-python -f docker/python/Dockerfile .
 docker buildx build -t coderank-cpp -f docker/cpp/Dockerfile .
 docker buildx build -t coderank-java -f docker/java/Dockerfile .
 docker buildx build -t coderank-node -f docker/javascript/Dockerfile .
+```
 
 
 ### 5. 🔧 Running the System
@@ -70,11 +74,50 @@ docker buildx build -t coderank-node -f docker/javascript/Dockerfile .
 ```bash
 npm install 
 npm start
+```
 
 - Start Kafka Worker
 
 ```bash
 node worker.js
+```
+---
+## 🔌 WebSocket Server
+
+- Listens on ws://localhost:8081
+- Send jobId after connection
+- Receives real-time logs per job
+
+---
+
+## 🔐 Security
+
+- Containers run in NetworkMode: none, limited CPU/mem
+- CapDrop: ALL, no-new-privileges
+- Timeout of 10 seconds + output capped
+
+---
+## 🧪 Testing
+
+```bash
+npm test
+```
+---
+
+## 🧹 Docker Cleanup
+
+- Remove stopped containers:
+
+```bash
+docker container prune
+docker image prune
+```
+
+---
+
+
+
+
 
 
 
