@@ -37,3 +37,52 @@ CodeRank is a scalable, containerized code execution backend supporting multiple
 git clone https://github.com/your-username/coderank.git
 cd CodeRank
 npm install
+
+### 2. 📄 Environment Variables
+
+Create a `.env` file at the root of your project with the following:
+
+```env
+PORT=3000
+MONGO_URI=mongodb://localhost:27017/coderank
+REDIS_URL=redis://localhost:6379
+KAFKA_BROKER=localhost:9092
+
+### 3. 🐳 Docker Setup
+
+```bash
+docker compose -f docker-compose.kafka.yml up -d
+docker compose -f docker-compose.redis.yml up -d
+
+### 4. 🛠 Build Docker containers per language
+
+```bash
+docker buildx build -t coderank-python -f docker/python/Dockerfile .
+docker buildx build -t coderank-cpp -f docker/cpp/Dockerfile .
+docker buildx build -t coderank-java -f docker/java/Dockerfile .
+docker buildx build -t coderank-node -f docker/javascript/Dockerfile .
+
+
+### 5. 🔧 Running the System
+
+- Starts Express API Server
+
+```bash
+npm install 
+npm start
+
+- Start Kafka Worker
+
+```bash
+node worker.js
+
+
+
+
+
+
+
+
+
+
+
