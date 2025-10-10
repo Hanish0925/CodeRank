@@ -1,84 +1,468 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CodeRank API Tester</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-    h1 { color: #333; }
-    label, select, textarea, button { display: block; width: 100%; margin-bottom: 15px; }
-    textarea { height: 150px; font-family: monospace; }
-    pre { background: #222; color: #0f0; padding: 10px; border-radius: 5px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CodeRank — API Tester</title>
+<style>
+  :root{
+    --bg: #0b1020;
+    --panel:#111735;
+    --muted:#8ea1b4;
+    --text:#e9eef6;
+    --accent:#6ea8fe;
+    --accent-2:#22c55e;
+    --warn:#f59e0b;
+    --error:#ef4444;
+    --border:#233056;
+    --chip:#1a2347;
+    --code:#0e1226;
+    --shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
+  [data-theme="light"]{
+    --bg:#f6f8fc;
+    --panel:#ffffff;
+    --muted:#5b6b7c;
+    --text:#0b1220;
+    --accent:#2563eb;
+    --accent-2:#16a34a;
+    --warn:#b45309;
+    --error:#b91c1c;
+    --border:#e6eaf2;
+    --chip:#f0f4ff;
+    --code:#0b1020;
+    --shadow: 0 8px 24px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:24px;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
+    background: var(--bg); color: var(--text);
+  }
+  .wrap{max-width:1000px; margin:0 auto;}
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:18px;
+  }
+  .brand{display:flex; gap:12px; align-items:center;}
+  .logo{
+    width:38px; height:38px; border-radius:10px;
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    box-shadow: var(--shadow);
+  }
+  h1{font-size:1.25rem; margin:0}
+  .muted{color:var(--muted); font-size:.93rem}
+  .panel{
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:16px; padding:18px; box-shadow: var(--shadow);
+  }
+  .grid{
+    display:grid; grid-template-columns: 1.2fr .8fr; gap:16px;
+  }
+  @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
+  label{display:block; font-weight:600; margin:8px 0 6px}
+  select, input[type="text"]{
+    width:100%; padding:10px 12px; border-radius:10px;
+    border:1px solid var(--border); background: transparent; color:var(--text);
+    outline:none;
+  }
+  .row{display:flex; gap:10px; align-items:center}
+  .row > *{flex:1}
+  textarea{
+    width:100%; min-height:240px; resize:vertical;
+    padding:14px; border-radius:12px; border:1px solid var(--border);
+    background: #0e142c; color:#dbe7ff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    line-height:1.35; tab-size:2;
+  }
+  [data-theme="light"] textarea{ background:#0f1730; color:#eaf2ff; }
+  .btn{
+    appearance:none; border:none; cursor:pointer; border-radius:12px;
+    padding:10px 14px; font-weight:600; color:white; background: var(--accent);
+    display:inline-flex; align-items:center; gap:8px; box-shadow: var(--shadow);
+  }
+  .btn.secondary{ background: transparent; color: var(--text); border:1px solid var(--border); }
+  .btn.success{ background: var(--accent-2); }
+  .btn.warn{ background: var(--warn); color:#0b1020; }
+  .btn.error{ background: var(--error); }
+  .btn:disabled{ opacity:.65; cursor:not-allowed; }
+  .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:var(--chip); padding:1px 6px; border-radius:6px; border:1px solid var(--border); color:var(--text)}
+  .chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;}
+  .chip{background: var(--chip); border:1px solid var(--border); padding:6px 10px; border-radius:999px; font-size:.85rem;}
+  .status{
+    display:flex; align-items:center; gap:10px; margin:10px 0 14px;
+    font-size:.95rem;
+  }
+  .dot{width:10px; height:10px; border-radius:50%;}
+  .dot.idle{background:#64748b}
+  .dot.running{background:#22c55e}
+  .dot.waiting{background:#f59e0b}
+  .dot.failed{background:#ef4444}
+  pre{
+    margin:0; background:#0a0f24; color:#bde0fe;
+    border-radius:12px; padding:14px; border:1px solid var(--border);
+    white-space:pre-wrap; max-height:420px; overflow:auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  [data-theme="light"] pre{ background:#0c1022; }
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin:10px 0}
+  .hint{margin-top:8px; color:var(--muted); font-size:.9rem}
+  .theme{
+    display:inline-flex; align-items:center; gap:8px;
+    background: transparent; color: var(--text); border:1px solid var(--border);
+    padding:8px 12px; border-radius:10px; cursor:pointer;
+  }
+  .url-input{min-width:280px}
+</style>
 </head>
-<body>
-  <h1>Test CodeRank API</h1>
-  <label for="language">Language</label>
-  <select id="language">
-    <option value="python">Python</option>
-    <option value="cpp">C++</option>
-    <option value="java">Java</option>
-    <option value="javascript">JavaScript</option>
-  </select>
+<body data-theme="dark">
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>CodeRank — API Tester</h1>
+          <div class="muted">Run code against your local executor. <span class="kbd">Ctrl / Cmd + Enter</span> to run.</div>
+        </div>
+      </div>
+      <div class="row" style="flex:0 0 auto; gap:10px">
+        <button id="themeBtn" class="theme" title="Toggle theme">🌗 Theme</button>
+      </div>
+    </header>
 
-  <label for="code">Code</label>
-  <textarea id="code" placeholder="Enter your code here..."></textarea>
+    <section class="panel">
+      <div class="grid">
+        <!-- Left: form -->
+        <div>
+          <label for="baseUrl">Backend URL</label>
+          <div class="row">
+            <input class="url-input" id="baseUrl" type="text" placeholder="http://localhost:3000" />
+            <button class="btn secondary" id="pingBtn">Ping</button>
+          </div>
 
-  <button onclick="submitCode()">Run Code</button>
+          <div class="row" style="margin-top:10px">
+            <div>
+              <label for="language">Language</label>
+              <select id="language">
+                <option value="python">Python</option>
+                <option value="cpp">C++</option>
+                <option value="java">Java</option>
+                <option value="javascript">JavaScript</option>
+              </select>
+              <div class="chips">
+                <span class="chip">Sandboxed</span>
+                <span class="chip">Queued</span>
+                <span class="chip">Result polling</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <label>&nbsp;</label>
+              <div class="toolbar" style="justify-content:flex-end">
+                <button class="btn secondary" id="loadSampleBtn">Load sample</button>
+                <button class="btn warn" id="clearBtn">Clear</button>
+                <button class="btn" id="runBtn">▶ Run</button>
+                <button class="btn error" id="cancelBtn" disabled>⛔ Cancel</button>
+              </div>
+            </div>
+          </div>
 
-  <h2>Response</h2>
-  <pre id="response">Waiting for output...</pre>
+          <label for="code" style="margin-top:10px">Code</label>
+          <textarea id="code" placeholder="Write or paste your code…"></textarea>
+          <div class="hint">Tip: Press <span class="kbd">Ctrl / Cmd + Enter</span> to run. Your language choice auto-saves.</div>
+        </div>
 
-  <script>
-    let jobId = null;
+        <!-- Right: result -->
+        <div>
+          <div class="status">
+            <span id="statusDot" class="dot idle"></span>
+            <span id="statusText" class="muted">Idle</span>
+          </div>
+          <pre id="response">Waiting for output…</pre>
+          <div class="toolbar">
+            <button class="btn secondary" id="copyOutputBtn">Copy Output</button>
+            <button class="btn success" id="copyCurlBtn">Copy curl</button>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    async function submitCode() {
-      const language = document.getElementById('language').value;
-      const code = document.getElementById('code').value;
-      const responseBox = document.getElementById('response');
+    <p class="muted" style="margin-top:12px">
+      This page calls <span class="kbd">POST /api/execute</span> → receives <span class="kbd">{ jobId }</span> → polls <span class="kbd">GET /api/result/:jobId</span>.
+    </p>
+  </div>
 
-      responseBox.textContent = 'Submitting code...\n';
+<script>
+(function(){
+  // --- Elements
+  const els = {
+    baseUrl: document.getElementById('baseUrl'),
+    lang: document.getElementById('language'),
+    code: document.getElementById('code'),
+    response: document.getElementById('response'),
+    run: document.getElementById('runBtn'),
+    clear: document.getElementById('clearBtn'),
+    cancel: document.getElementById('cancelBtn'),
+    loadSample: document.getElementById('loadSampleBtn'),
+    copyOutput: document.getElementById('copyOutputBtn'),
+    copyCurl: document.getElementById('copyCurlBtn'),
+    statusDot: document.getElementById('statusDot'),
+    statusText: document.getElementById('statusText'),
+    themeBtn: document.getElementById('themeBtn'),
+    pingBtn: document.getElementById('pingBtn'),
+  };
 
-      try {
-        const res = await fetch('http://localhost:3000/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ language, code })
-        });
+  // --- Local storage keys
+  const LS = {
+    url: 'coderank:url',
+    lang: 'coderank:lang',
+    code: 'coderank:code',
+    theme: 'coderank:theme'
+  };
 
-        const result = await res.json();
+  // --- Defaults
+  const DEFAULT_URL = 'http://localhost:3000';
 
-        if (result.success && result.jobId) {
-          jobId = result.jobId;
-          responseBox.textContent += `Job ID: ${jobId}\nWaiting for output...\n`;
+  // --- Starter snippets
+  const SAMPLES = {
+    python: `print("Hello from Python!")
+# Simple sum:
+s = sum(i for i in range(10))
+print("Sum 0..9 =", s)`,
+    javascript: `console.log("Hello from Node.js");
+const sum = [...Array(10).keys()].reduce((a,b)=>a+b,0);
+console.log("Sum 0..9 =", sum);`,
+    java: `public class Main {
+  public static void main(String[] args){
+    System.out.println("Hello from Java");
+    int s=0; for(int i=0;i<10;i++) s+=i;
+    System.out.println("Sum 0..9 = " + s);
+  }
+}`,
+    cpp: `#include <bits/stdc++.h>
+using namespace std;
+int main(){
+  cout << "Hello from C++\\n";
+  int s=0; for(int i=0;i<10;i++) s+=i;
+  cout << "Sum 0..9 = " << s << "\\n";
+  return 0;
+}`
+  };
 
-          // Polling the result endpoint
-          const pollInterval = setInterval(async () => {
-            try {
-              const resultRes = await fetch(`http://localhost:3000/api/result/${jobId}`);
-              const resultData = await resultRes.json();
+  // --- State
+  let pollTimer = null;
+  let currentJobId = null;
+  let pollingAbort = null;
 
-              if (resultData.status === 'completed' || resultData.status === 'success') {
-                clearInterval(pollInterval);
-                responseBox.textContent += `\nOutput:\n${resultData.output || resultData.error}`;
-              } else if (resultData.status === 'failed') {
-                clearInterval(pollInterval);
-                responseBox.textContent += `\nError:\n${resultData.error}`;
-              }
-            } catch (pollErr) {
-              clearInterval(pollInterval);
-              responseBox.textContent += `\nFailed to fetch result: ${pollErr.message}`;
-            }
-          }, 1000);
+  // --- Utils
+  function setStatus(kind, text){
+    els.statusDot.className = 'dot ' + kind;
+    els.statusText.textContent = text;
+  }
+  function setRunning(running){
+    els.run.disabled = running;
+    els.cancel.disabled = !running;
+  }
+  function show(msg, append=false){
+    if(append) els.response.textContent += msg;
+    else els.response.textContent = msg;
+  }
+  function getBaseUrl(){
+    let u = (els.baseUrl.value || '').trim();
+    if(!u) u = DEFAULT_URL;
+    return u.replace(/\/+$/, ''); // remove trailing slash
+  }
+  function copy(text){
+    navigator.clipboard.writeText(text).catch(()=>{});
+  }
+  function buildCurl(url, language, code){
+    const body = JSON.stringify({ language, code }).replace(/"/g,'\\"');
+    return `curl -s -X POST "${url}/api/execute" -H "Content-Type: application/json" -d "{\\\"language\\\":\\\"${language}\\\",\\\"code\\\":\\\"${body.slice(0,10000)}\\\"}"`;
+  }
+  function saveLS(){
+    localStorage.setItem(LS.url, els.baseUrl.value);
+    localStorage.setItem(LS.lang, els.lang.value);
+    localStorage.setItem(LS.code, els.code.value);
+  }
+  function loadLS(){
+    const url = localStorage.getItem(LS.url) || DEFAULT_URL;
+    const lang = localStorage.getItem(LS.lang) || 'python';
+    const code = localStorage.getItem(LS.code) || '';
+    els.baseUrl.value = url;
+    els.lang.value = lang;
+    els.code.value = code;
+    const theme = localStorage.getItem(LS.theme) || 'dark';
+    document.body.setAttribute('data-theme', theme);
+  }
 
-        } else {
-          responseBox.textContent = `Error: ${result.error || 'Unknown error'}`;
-        }
-      } catch (error) {
-        responseBox.textContent = `Request failed: ${error.message}`;
-      }
+  // --- Theme toggle
+  els.themeBtn.addEventListener('click', ()=>{
+    const cur = document.body.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.body.setAttribute('data-theme', next);
+    localStorage.setItem(LS.theme, next);
+  });
+
+  // --- Ping
+  els.pingBtn.addEventListener('click', async ()=>{
+    const url = getBaseUrl();
+    setStatus('waiting', 'Pinging…');
+    try{
+      const r = await fetch(url, { method:'GET' });
+      show(`Ping ${r.ok ? 'OK ✅' : 'Failed ❌'} — ${r.status} ${r.statusText}`);
+      setStatus(r.ok ? 'running' : 'failed', r.ok ? 'Reachable' : 'Unreachable');
+    }catch(e){
+      show(`Ping error: ${e.message}`);
+      setStatus('failed', 'Unreachable');
     }
-  </script>
+  });
+
+  // --- Load sample
+  els.loadSample.addEventListener('click', ()=>{
+    const lang = els.lang.value;
+    els.code.value = SAMPLES[lang] || '';
+    saveLS();
+  });
+
+  // --- Clear
+  els.clear.addEventListener('click', ()=>{
+    els.code.value = '';
+    show('Cleared. Waiting for output…');
+    setStatus('idle', 'Idle');
+    saveLS();
+  });
+
+  // --- Copy output
+  els.copyOutput.addEventListener('click', ()=>{
+    copy(els.response.textContent || '');
+  });
+
+  // --- Copy curl
+  els.copyCurl.addEventListener('click', ()=>{
+    const url = getBaseUrl();
+    const curl = buildCurl(url, els.lang.value, els.code.value);
+    copy(curl);
+    show(els.response.textContent + `\n\n(cURL copied to clipboard)`);
+  });
+
+  // --- Keyboard run (Ctrl/Cmd + Enter)
+  document.addEventListener('keydown', (e)=>{
+    if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+      els.run.click();
+      e.preventDefault();
+    }
+  });
+
+  // --- Cancel polling
+  els.cancel.addEventListener('click', ()=>{
+    if(pollingAbort) pollingAbort.abort();
+    if(pollTimer) clearInterval(pollTimer);
+    setRunning(false);
+    setStatus('idle', 'Canceled');
+    show(els.response.textContent + '\n\nCanceled by user.');
+  });
+
+  // --- Run
+  els.run.addEventListener('click', async ()=>{
+    saveLS();
+    const url = getBaseUrl();
+    const language = els.lang.value;
+    const code = els.code.value.trim();
+
+    if(!code){
+      show('Please enter some code to run.');
+      setStatus('failed', 'No code');
+      return;
+    }
+
+    setRunning(true);
+    setStatus('waiting', 'Submitting…');
+    show('Submitting code…\n');
+
+    try{
+      const res = await fetch(`${url}/api/execute`, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ language, code })
+      });
+
+      if(!res.ok){
+        const txt = await res.text();
+        show(`Error ${res.status}: ${res.statusText}\n${txt}`);
+        setStatus('failed', 'Submit failed');
+        setRunning(false);
+        return;
+      }
+
+      const result = await res.json();
+      if(result?.success && result?.jobId){
+        currentJobId = result.jobId;
+        show(els.response.textContent + `Job ID: ${currentJobId}\nWaiting for output…\n`);
+        setStatus('waiting', 'Queued');
+
+        // Start polling
+        pollingAbort = new AbortController();
+        const { signal } = pollingAbort;
+        const started = Date.now();
+        const TIMEOUT_MS = 90_000; // 90s
+
+        pollTimer = setInterval(async ()=>{
+          if(signal.aborted){
+            clearInterval(pollTimer);
+            return;
+          }
+          if(Date.now() - started > TIMEOUT_MS){
+            clearInterval(pollTimer);
+            setRunning(false);
+            setStatus('failed', 'Timeout');
+            show(els.response.textContent + `\nTimed out after ${Math.round(TIMEOUT_MS/1000)}s.`);
+            return;
+          }
+          try{
+            const r = await fetch(`${url}/api/result/${currentJobId}`, { signal });
+            const data = await r.json();
+
+            if(data.status === 'completed' || data.status === 'success'){
+              clearInterval(pollTimer);
+              setRunning(false);
+              setStatus('running', 'Completed');
+              const out = (data.output ?? data.error ?? '').toString();
+              show(els.response.textContent + `\nOutput:\n${out}`);
+            } else if(data.status === 'failed'){
+              clearInterval(pollTimer);
+              setRunning(false);
+              setStatus('failed', 'Failed');
+              show(els.response.textContent + `\nError:\n${data.error ?? 'Unknown error'}`);
+            } else {
+              // still pending
+              setStatus('waiting', 'Running…');
+            }
+          }catch(err){
+            clearInterval(pollTimer);
+            setRunning(false);
+            setStatus('failed', 'Poll error');
+            show(els.response.textContent + `\nFailed to fetch result: ${err.message}`);
+          }
+        }, 1000);
+
+      } else {
+        show(`Error: ${result?.error || 'Unknown error'}`);
+        setStatus('failed', 'Submit error');
+        setRunning(false);
+      }
+    }catch(error){
+      show(`Request failed: ${error.message}`);
+      setStatus('failed', 'Network error');
+      setRunning(false);
+    }
+  });
+
+  // --- Persist on change
+  els.baseUrl.addEventListener('change', saveLS);
+  els.lang.addEventListener('change', saveLS);
+  els.code.addEventListener('input', saveLS);
+
+  // --- Init
+  loadLS();
+  if(!els.code.value) els.code.value = SAMPLES[els.lang.value];
+})();
+</script>
 </body>
 </html>
