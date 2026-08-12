@@ -8,7 +8,8 @@
     "worker": "node worker.js",
     "worker:dev": "nodemon worker.js",
     "test": "jest --runInBand",
-    "test:unit": "jest tests/api.test.js --runInBand",
+    "test:api": "jest tests/api.test.js --runInBand",
+    "test:executor": "jest tests/codeExecutor.test.js --runInBand",
     "loadtest": "autocannon -c 20 -d 30 -m POST -H content-type=application/json -b '{\"language\":\"python\",\"code\":\"print(1)\"}' http://localhost:3000/api/execute"
   },
   "dependencies": {
