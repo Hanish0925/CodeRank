@@ -1,14 +1,22 @@
 {
+  "name": "coderank",
+  "version": "1.0.0",
+  "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "jest"
+    "worker": "node worker.js",
+    "worker:dev": "nodemon worker.js",
+    "test": "jest --runInBand",
+    "test:unit": "jest tests/api.test.js --runInBand",
+    "loadtest": "autocannon -c 20 -d 30 -m POST -H content-type=application/json -b '{\"language\":\"python\",\"code\":\"print(1)\"}' http://localhost:3000/api/execute"
   },
   "dependencies": {
-    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dockerode": "^4.0.6",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.4.1",
     "kafkajs": "^2.2.4",
     "mongoose": "^8.15.1",
     "redis": "^5.1.1",
@@ -16,7 +24,10 @@
     "ws": "^8.18.2"
   },
   "devDependencies": {
+    "autocannon": "^7.15.0",
     "jest": "^29.7.0",
-    "nodemon": "^3.0.0"
+    "mongodb-memory-server": "^10.1.2",
+    "nodemon": "^3.0.0",
+    "supertest": "^7.0.0"
   }
 }

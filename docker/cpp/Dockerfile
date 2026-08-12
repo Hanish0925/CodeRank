@@ -1,4 +1,4 @@
-FROM gcc:latest
+FROM gcc:13.2.0
 
 WORKDIR /code
 

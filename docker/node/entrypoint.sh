@@ -1,7 +1,11 @@
 #!/bin/sh
+# /src is the read-only bind mount; /code is a size-limited tmpfs.
+cp -r /src/. /code/ 2>/dev/null
+cd /code
 
+# exec so the program's exit code becomes the container's exit code.
 if [ -f /code/input.txt ]; then
-  node /code/code.js < /code/input.txt
+  exec node /code/code.js < /code/input.txt
 else
-  node /code/code.js
+  exec node /code/code.js
 fi

@@ -424,12 +424,27 @@ int main(){
               setRunning(false);
               setStatus('running', 'Completed');
               const out = (data.output ?? data.error ?? '').toString();
-              show(els.response.textContent + `\nOutput:\n${out}`);
-            } else if(data.status === 'failed'){
+              const meta = [
+                data.durationMs != null ? `${data.durationMs}ms` : null,
+                data.truncated ? 'output truncated' : null
+              ].filter(Boolean).join(' · ');
+              show(els.response.textContent + `\nOutput:\n${out}` + (meta ? `\n\n(${meta})` : ''));
+            } else if(data.status === 'error' || data.status === 'failed'){
+              // The schema's terminal failure status is 'error'; the old check
+              // only looked for 'failed', so failures hung until the poll timeout.
               clearInterval(pollTimer);
               setRunning(false);
-              setStatus('failed', 'Failed');
-              show(els.response.textContent + `\nError:\n${data.error ?? 'Unknown error'}`);
+              const label = {
+                compile_error: 'Compile error',
+                runtime_error: 'Runtime error',
+                timeout: 'Time limit exceeded',
+                memory_limit: 'Memory limit exceeded',
+                unsupported_language: 'Unsupported language'
+              }[data.errorType] || 'Failed';
+              setStatus('failed', label);
+              const detail = (data.error ?? 'Unknown error').toString();
+              const meta = data.durationMs != null ? `\n\n(${data.durationMs}ms)` : '';
+              show(els.response.textContent + `\n${label}:\n${detail}${meta}`);
             } else {
               // still pending
               setStatus('waiting', 'Running…');
